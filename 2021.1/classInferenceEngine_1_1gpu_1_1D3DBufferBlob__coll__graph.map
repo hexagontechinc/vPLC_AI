@@ -1,0 +1,10 @@
+<map id="InferenceEngine::gpu::D3DBufferBlob" name="InferenceEngine::gpu::D3DBufferBlob">
+<area shape="rect" id="node1" title="This class represents an abstraction for GPU plugin remote blob which is shared with Direct3D 11 buff..." alt="" coords="127,519,285,560"/>
+<area shape="rect" id="node2" href="$classInferenceEngine_1_1gpu_1_1ClBufferBlob.html" title="This class represents an abstraction for GPU plugin remote blob which can be shared with user&#45;supplie..." alt="" coords="127,428,285,469"/>
+<area shape="rect" id="node3" href="$classInferenceEngine_1_1gpu_1_1ClBlob.html" title="The basic class for all GPU plugin remote blob objects. The OpenCL memory object handle (cl_mem) can ..." alt="" coords="35,330,193,371"/>
+<area shape="rect" id="node4" href="$classInferenceEngine_1_1RemoteBlob.html" title="This class represents an Inference Engine abstraction to the memory allocated on the remote (non&#45;CPU)..." alt="" coords="7,247,221,273"/>
+<area shape="rect" id="node5" href="$classInferenceEngine_1_1MemoryBlob.html" title="This class implements a container object that represents a tensor in memory (host and remote/accelera..." alt="" coords="5,171,223,197"/>
+<area shape="rect" id="node6" href="$classInferenceEngine_1_1Blob.html" title="This class represents a universal container in the Inference Engine." alt="" coords="32,95,196,121"/>
+<area shape="rect" id="node7" href="$classInferenceEngine_1_1TensorDesc.html" title="This class defines Tensor description." alt="" coords="9,5,219,32"/>
+<area shape="rect" id="node8" href="$classInferenceEngine_1_1gpu_1_1details_1_1param__map__obj__getter.html" title="This wrapper class is used to obtain low&#45;level handles from remote blob or context object parameters." alt="" coords="218,323,378,379"/>
+</map>

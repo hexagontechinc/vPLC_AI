@@ -7,7 +7,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.18"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>MatMul &lt;a name=&quot;MatMul&quot;&gt;&lt;/a&gt; - OpenVINO™ Toolkit</title>
+<title>ReduceMin &lt;a name=&quot;ReduceMin&quot;&gt;&lt;/a&gt; - OpenVINO™ Toolkit</title>
 <!-- <script type="text/javascript" src="jquery.js?v=405cebc51c254c8b400f2a138dc8f9b3"></script> -->
 <!-- JQuery 2.2.4 -->
 <script src="jquery-2.2.4.min.js?v=405cebc51c254c8b400f2a138dc8f9b3"></script>
@@ -86,143 +86,126 @@ $(function() {
 </div><!-- top -->
 <div class="PageDoc"><div class="header">
   <div class="headertitle">
-<div class="title">MatMul <a class="anchor" id="MatMul"></a> </div>  </div>
+<div class="title">ReduceMin <a class="anchor" id="ReduceMin"></a> </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p><b>Versioned name</b>: <em>MatMul-1</em></p>
-<p><b>Category</b>: Matrix multiplication</p>
-<p><b>Short description</b>: Generalized matrix multiplication</p>
-<p><b>Detailed description</b></p>
-<p><em>MatMul</em> operation takes two tensors and performs usual matrix-matrix multiplication, matrix-vector multiplication or vector-matrix multiplication depending on argument shapes. Input tensors can have any rank &gt;= 1. Two right-most axes in each tensor are interpreted as matrix rows and columns dimensions while all left-most axes (if present) are interpreted as multi-dimensional batch: [BATCH_DIM_1, BATCH_DIM_2,..., BATCH_DIM_K, ROW_INDEX_DIM, COL_INDEX_DIM]. The operation supports usual broadcast semantics for batch dimensions. It enables multiplication of batch of pairs of matrices in a single shot.</p>
-<p>Before matrix multiplication, there is an implicit shape alignment for input arguments. It consists of the following steps:</p>
-<ol type="1">
-<li>If rank of an input less than 2 it is unsqueezed to 2D tensor by adding axes with size 1 to the left of the shape. For example, if input has shape <code>[S]</code> it will be reshaped to <code>[1, S]</code>. It is applied for each input independently.</li>
-<li>Applied transpositions specified by optional <code>transpose_a</code> and <code>transpose_b</code> attributes.</li>
-<li>If ranks of input arguments are different after steps 1 and 2, each is unsqueezed from the left side of the shape by necessary number of axes to make both shapes of the same rank.</li>
-</ol>
-<ol type="1">
-<li>Usual rules of the broadcasting are applied for batch dimensions.</li>
-</ol>
-<p>Two attributes, transpose_a and transpose_b specifies embedded transposition for two right-most dimension for the first and the second input tensors correspondingly. It implies swapping of ROW_INDEX_DIM and COL_INDEX_DIM in the corresponding input tensor. Batch dimensions are not affected by these attributes.</p>
+<div class="textblock"><p><b>Versioned name</b>: <em>ReduceMin-1</em></p>
+<p><b>Category</b>: <em>Reduction</em></p>
+<p><b>Short description</b>: <em>ReduceMin</em> operation performs reduction with finding the minimum value of the 1st input tensor in slices specified by the 2nd input.</p>
 <p><b>Attributes</b></p>
 <ul>
-<li><em>transpose_a</em><ul>
-<li><b>Description</b>: transposes dimensions ROW_INDEX_DIM and COL_INDEX_DIM of the 1st input; 0 means no transpose, 1 means transpose</li>
-<li><b>Range of values</b>: False or True</li>
-<li><b>Type</b>: boolean</li>
-<li><b>Default value</b>: False</li>
-<li><b>Required</b>: <em>no</em></li>
-</ul>
-</li>
-<li><em>transpose_b</em><ul>
-<li><b>Description</b>: transposes dimensions ROW_INDEX_DIM and COL_INDEX_DIM of the 2nd input; 0 means no transpose, 1 means transpose</li>
-<li><b>Range of values</b>: False or True</li>
-<li><b>Type</b>: boolean</li>
+<li><em>keep_dims</em><ul>
+<li><b>Description</b>: If set to <code>True</code> it holds axes that are used for reduction. For each such axis, output dimension is equal to 1.</li>
+<li><b>Range of values</b>: True or False</li>
+<li><b>Type</b>: <code>boolean</code></li>
 <li><b>Default value</b>: False</li>
 <li><b>Required</b>: <em>no</em></li>
 </ul>
 </li>
 </ul>
-<p><b>Inputs</b>:</p>
+<p><b>Inputs</b></p>
 <ul>
-<li><b>1</b>: Input batch of matrices A. Rank &gt;= 1. Required.</li>
-<li><b>2</b>: Input batch of matrices B. Rank &gt;= 1. Required.</li>
+<li><b>1</b>: Input tensor x of type <em>T1</em>. <b>Required.</b></li>
+<li><b>2</b>: Scalar or 1D tensor of type <em>T_IND</em> with axis indices for the 1st input along which reduction is performed. Accepted range is <code>[-r, r-1]</code> where where <code>r</code> is the rank of input tensor, all values must be unique, repeats are not allowed. <b>Required.</b></li>
 </ul>
+<p><b>Outputs</b></p>
+<ul>
+<li><b>1</b>: Tensor of the same type as the 1st input tensor and <code>shape[i] = shapeOf(input1)[i]</code> for all <code>i</code> that is not in the list of axes from the 2nd input. For dimensions from the 2nd input tensor, <code>shape[i] == 1</code> if <code>keep_dims == True</code>, or <code>i</code>-th dimension is removed from the output otherwise.</li>
+</ul>
+<p><b>Types</b></p>
+<ul>
+<li><em>T1</em>: any supported numeric type.</li>
+<li><em>T_IND</em>: <code>int64</code> or <code>int32</code>.</li>
+</ul>
+<p><b>Detailed Description</b></p>
+<p>Each element in the output is the result of reduction with finding a minimum operation along dimensions specified by the 2nd input: </p><pre class="fragment">output[i0, i1, ..., iN] = min[j0,..., jN](x[j0, ..., jN]))
+</pre><p>Where indices i0, ..., iN run through all valid indices for the 1st input and finding the minimum value <code>min[j0, ..., jN]</code> have <code>jk = ik</code> for those dimensions <code>k</code> that are not in the set of indices specified by the 2nd input of the operation. Corner cases:</p>
+<ol type="1">
+<li>When the 2nd input is an empty list, then this operation does nothing, it is an identity.</li>
+<li>When the 2nd input contains all dimensions of the 1st input, this means that a single reduction value is calculated for entire input tensor.</li>
+</ol>
 <p><b>Example</b></p>
-<p><em>Vector-matric multiplication</em></p>
-<div class="fragment"><div class="line">&lt;<span class="keywordtype">layer</span> ... <span class="keyword">type</span>=<span class="stringliteral">&quot;MatMul&quot;</span>&gt;</div>
+<div class="fragment"><div class="line">&lt;<span class="keywordtype">layer</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;1&quot;</span> <span class="keyword">type</span>=<span class="stringliteral">&quot;ReduceMin&quot;</span> ...&gt;</div>
+<div class="line">    &lt;<span class="keywordtype">data</span> <span class="keyword">keep_dims</span>=<span class="stringliteral">&quot;True&quot;</span> /&gt;</div>
 <div class="line">    &lt;<span class="keywordtype">input</span>&gt;</div>
 <div class="line">        &lt;<span class="keywordtype">port</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;0&quot;</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1024&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;6&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;12&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;10&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;24&lt;/<span class="keywordtype">dim</span>&gt;</div>
 <div class="line">        &lt;/<span class="keywordtype">port</span>&gt;</div>
 <div class="line">        &lt;<span class="keywordtype">port</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;1&quot;</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1024&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1000&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;2&lt;/<span class="keywordtype">dim</span>&gt;         <span class="comment">&lt;!-- value is [2, 3] that means independent reduction in each channel and batch --&gt;</span></div>
 <div class="line">        &lt;/<span class="keywordtype">port</span>&gt;</div>
 <div class="line">    &lt;/<span class="keywordtype">input</span>&gt;</div>
 <div class="line">    &lt;<span class="keywordtype">output</span>&gt;</div>
 <div class="line">        &lt;<span class="keywordtype">port</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;2&quot;</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;6&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;12&lt;/<span class="keywordtype">dim</span>&gt;</div>
 <div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1000&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1&lt;/<span class="keywordtype">dim</span>&gt;</div>
 <div class="line">        &lt;/<span class="keywordtype">port</span>&gt;</div>
 <div class="line">    &lt;/<span class="keywordtype">output</span>&gt;</div>
 <div class="line">&lt;/<span class="keywordtype">layer</span>&gt;</div>
-</div><!-- fragment --><p><em>Matrix-matrix multiplication (like FullyConnected with batch size 1)</em></p>
-<div class="fragment"><div class="line">&lt;<span class="keywordtype">layer</span> ... <span class="keyword">type</span>=<span class="stringliteral">&quot;MatMul&quot;</span>&gt;</div>
+</div><!-- fragment --><div class="fragment"><div class="line">&lt;<span class="keywordtype">layer</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;1&quot;</span> <span class="keyword">type</span>=<span class="stringliteral">&quot;ReduceMin&quot;</span> ...&gt;</div>
+<div class="line">    &lt;<span class="keywordtype">data</span> <span class="keyword">keep_dims</span>=<span class="stringliteral">&quot;False&quot;</span> /&gt;</div>
 <div class="line">    &lt;<span class="keywordtype">input</span>&gt;</div>
 <div class="line">        &lt;<span class="keywordtype">port</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;0&quot;</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1024&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;6&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;12&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;10&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;24&lt;/<span class="keywordtype">dim</span>&gt;</div>
 <div class="line">        &lt;/<span class="keywordtype">port</span>&gt;</div>
 <div class="line">        &lt;<span class="keywordtype">port</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;1&quot;</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1024&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1000&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;2&lt;/<span class="keywordtype">dim</span>&gt;         <span class="comment">&lt;!-- value is [2, 3] that means independent reduction in each channel and batch --&gt;</span></div>
 <div class="line">        &lt;/<span class="keywordtype">port</span>&gt;</div>
 <div class="line">    &lt;/<span class="keywordtype">input</span>&gt;</div>
 <div class="line">    &lt;<span class="keywordtype">output</span>&gt;</div>
 <div class="line">        &lt;<span class="keywordtype">port</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;2&quot;</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1000&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;6&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;12&lt;/<span class="keywordtype">dim</span>&gt;</div>
 <div class="line">        &lt;/<span class="keywordtype">port</span>&gt;</div>
 <div class="line">    &lt;/<span class="keywordtype">output</span>&gt;</div>
 <div class="line">&lt;/<span class="keywordtype">layer</span>&gt;</div>
-</div><!-- fragment --><p><em>Matrix-vector multiplication with embedded transposition of the second matrix</em></p>
-<div class="fragment"><div class="line">&lt;<span class="keywordtype">layer</span> ... <span class="keyword">type</span>=<span class="stringliteral">&quot;MatMul&quot;</span>&gt;</div>
-<div class="line">    &lt;<span class="keywordtype">data</span> <span class="keyword">transpose_b</span>=<span class="stringliteral">&quot;true&quot;</span>/&gt;</div>
+</div><!-- fragment --><div class="fragment"><div class="line">&lt;<span class="keywordtype">layer</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;1&quot;</span> <span class="keyword">type</span>=<span class="stringliteral">&quot;ReduceMin&quot;</span> ...&gt;</div>
+<div class="line">    &lt;<span class="keywordtype">data</span> <span class="keyword">keep_dims</span>=<span class="stringliteral">&quot;False&quot;</span> /&gt;</div>
 <div class="line">    &lt;<span class="keywordtype">input</span>&gt;</div>
 <div class="line">        &lt;<span class="keywordtype">port</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;0&quot;</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1024&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;6&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;12&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;10&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;24&lt;/<span class="keywordtype">dim</span>&gt;</div>
 <div class="line">        &lt;/<span class="keywordtype">port</span>&gt;</div>
 <div class="line">        &lt;<span class="keywordtype">port</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;1&quot;</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1000&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1024&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1&lt;/<span class="keywordtype">dim</span>&gt;         <span class="comment">&lt;!-- value is [1] that means independent reduction in each channel and spatial dimensions --&gt;</span></div>
 <div class="line">        &lt;/<span class="keywordtype">port</span>&gt;</div>
 <div class="line">    &lt;/<span class="keywordtype">input</span>&gt;</div>
 <div class="line">    &lt;<span class="keywordtype">output</span>&gt;</div>
 <div class="line">        &lt;<span class="keywordtype">port</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;2&quot;</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1000&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;6&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;10&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;24&lt;/<span class="keywordtype">dim</span>&gt;</div>
 <div class="line">        &lt;/<span class="keywordtype">port</span>&gt;</div>
 <div class="line">    &lt;/<span class="keywordtype">output</span>&gt;</div>
 <div class="line">&lt;/<span class="keywordtype">layer</span>&gt;</div>
-</div><!-- fragment --><p><em>Matrix-matrix multiplication (like FullyConnected with batch size 10)</em></p>
-<div class="fragment"><div class="line">&lt;<span class="keywordtype">layer</span> ... <span class="keyword">type</span>=<span class="stringliteral">&quot;MatMul&quot;</span>&gt;</div>
+</div><!-- fragment --><div class="fragment"><div class="line">&lt;<span class="keywordtype">layer</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;1&quot;</span> <span class="keyword">type</span>=<span class="stringliteral">&quot;ReduceMin&quot;</span> ...&gt;</div>
+<div class="line">    &lt;<span class="keywordtype">data</span> <span class="keyword">keep_dims</span>=<span class="stringliteral">&quot;False&quot;</span> /&gt;</div>
 <div class="line">    &lt;<span class="keywordtype">input</span>&gt;</div>
 <div class="line">        &lt;<span class="keywordtype">port</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;0&quot;</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;6&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;12&lt;/<span class="keywordtype">dim</span>&gt;</div>
 <div class="line">            &lt;<span class="keywordtype">dim</span>&gt;10&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1024&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;24&lt;/<span class="keywordtype">dim</span>&gt;</div>
 <div class="line">        &lt;/<span class="keywordtype">port</span>&gt;</div>
 <div class="line">        &lt;<span class="keywordtype">port</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;1&quot;</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1024&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1000&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1&lt;/<span class="keywordtype">dim</span>&gt;         <span class="comment">&lt;!-- value is [-2] that means independent reduction in each channel, batch and second spatial dimension --&gt;</span></div>
 <div class="line">        &lt;/<span class="keywordtype">port</span>&gt;</div>
 <div class="line">    &lt;/<span class="keywordtype">input</span>&gt;</div>
 <div class="line">    &lt;<span class="keywordtype">output</span>&gt;</div>
 <div class="line">        &lt;<span class="keywordtype">port</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;2&quot;</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;10&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1000&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">        &lt;/<span class="keywordtype">port</span>&gt;</div>
-<div class="line">    &lt;/<span class="keywordtype">output</span>&gt;</div>
-<div class="line">&lt;/<span class="keywordtype">layer</span>&gt;</div>
-</div><!-- fragment --><p><em>Multiplication of batch of 5 matrices by a one matrix with broadcasting</em></p>
-<div class="fragment"><div class="line">&lt;<span class="keywordtype">layer</span> ... <span class="keyword">type</span>=<span class="stringliteral">&quot;MatMul&quot;</span>&gt;</div>
-<div class="line">    &lt;<span class="keywordtype">input</span>&gt;</div>
-<div class="line">        &lt;<span class="keywordtype">port</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;0&quot;</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;5&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;10&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1024&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">        &lt;/<span class="keywordtype">port</span>&gt;</div>
-<div class="line">        &lt;<span class="keywordtype">port</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;1&quot;</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1024&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1000&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">        &lt;/<span class="keywordtype">port</span>&gt;</div>
-<div class="line">    &lt;/<span class="keywordtype">input</span>&gt;</div>
-<div class="line">    &lt;<span class="keywordtype">output</span>&gt;</div>
-<div class="line">        &lt;<span class="keywordtype">port</span> <span class="keyword">id</span>=<span class="stringliteral">&quot;2&quot;</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;5&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;10&lt;/<span class="keywordtype">dim</span>&gt;</div>
-<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;1000&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;6&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;12&lt;/<span class="keywordtype">dim</span>&gt;</div>
+<div class="line">            &lt;<span class="keywordtype">dim</span>&gt;24&lt;/<span class="keywordtype">dim</span>&gt;</div>
 <div class="line">        &lt;/<span class="keywordtype">port</span>&gt;</div>
 <div class="line">    &lt;/<span class="keywordtype">output</span>&gt;</div>
 <div class="line">&lt;/<span class="keywordtype">layer</span>&gt;</div>
