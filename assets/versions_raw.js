@@ -1,0 +1,1 @@
+var data='[{"version": "latest"}, {"version": "2021.1"}, {"version": "2020.4"}, {"version": "2020.3"}, {"version": "2020.2"}, {"version": "2020.1"}, {"version": "2019_R3.1"}, {"version": "2019_R3"}, {"version": "2019_R2"}, {"version": "2019_R1.1"}, {"version": "2019_R1.01"}, {"version": "2019_R1"}, {"version": "2018_R5"}]';
